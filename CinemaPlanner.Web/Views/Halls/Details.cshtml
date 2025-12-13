@@ -1,0 +1,26 @@
+@model CinemaPlanner.Web.Models.Hall
+@{
+    ViewData["Title"] = "Hall Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">Name</dt>
+        <dd class="col-sm-10">@Model.Name</dd>
+
+        <dt class="col-sm-2">Rows</dt>
+        <dd class="col-sm-10">@Model.Rows</dd>
+
+        <dt class="col-sm-2">Seats/Row</dt>
+        <dd class="col-sm-10">@Model.SeatsPerRow</dd>
+
+        <dt class="col-sm-2">Capacity</dt>
+        <dd class="col-sm-10">@(@Model.Rows * @Model.SeatsPerRow)</dd>
+    </dl>
+</div>
+<p>
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</p>

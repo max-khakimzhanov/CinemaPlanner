@@ -1,0 +1,22 @@
+@model IEnumerable<CinemaPlanner.Web.Models.Movie>
+@{
+    ViewData["Title"] = "Movies";
+}
+
+<h1>Movies</h1>
+
+<p class="text-muted">@ViewBag.Greeting</p>
+<p class="text-secondary">Total movies tracked: @ViewData["Count"]</p>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</p>
+
+<div class="row row-cols-1 row-cols-md-3 g-3">
+@foreach (var item in Model)
+{
+    <div class="col">
+        @await Html.PartialAsync("_MovieCard", item)
+    </div>
+}
+</div>

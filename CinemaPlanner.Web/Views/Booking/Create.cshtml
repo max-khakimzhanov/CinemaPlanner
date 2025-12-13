@@ -1,0 +1,35 @@
+@model CinemaPlanner.Web.Models.Booking
+@{
+    ViewData["Title"] = "Create Booking";
+}
+
+<h1>Create Booking</h1>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="ScreeningId" class="control-label">Screening</label>
+        <select asp-for="ScreeningId" class="form-control" asp-items="ViewBag.ScreeningId"></select>
+        <span asp-validation-for="ScreeningId" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="SeatRow" class="control-label"></label>
+        <input asp-for="SeatRow" class="form-control" />
+        <span asp-validation-for="SeatRow" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="SeatNumber" class="control-label"></label>
+        <input asp-for="SeatNumber" class="form-control" />
+        <span asp-validation-for="SeatNumber" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="CustomerName" class="control-label"></label>
+        <input asp-for="CustomerName" class="form-control" />
+        <span asp-validation-for="CustomerName" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Save</button>
+    <a asp-action="Index" class="btn btn-secondary mt-3">Back to List</a>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

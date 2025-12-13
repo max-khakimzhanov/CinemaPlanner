@@ -1,0 +1,37 @@
+@model IEnumerable<CinemaPlanner.Web.Models.Screening>
+@{
+    ViewData["Title"] = "Upcoming Screenings";
+}
+
+<h1>Upcoming Screenings (next @ViewData["HoursWindow"] hours)</h1>
+
+@if (!Model.Any())
+{
+    <p class="text-muted">No screenings in this window.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Movie</th>
+                <th>Hall</th>
+                <th>Start Time</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Movie?.Title</td>
+                <td>@item.Hall?.Name</td>
+                <td>@item.TimeLabel</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

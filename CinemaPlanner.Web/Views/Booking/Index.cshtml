@@ -1,0 +1,55 @@
+@model IEnumerable<CinemaPlanner.Web.Models.Booking>
+@{
+    ViewData["Title"] = "Bookings";
+}
+
+<h1>Bookings</h1>
+<p class="text-muted">Booking event is raised when a booking is created. BigInteger combos show sample seating combinations.</p>
+<p>Seat combination estimate (choose 2 in first hall): <strong>@ViewBag.SeatCombinationEstimate</strong></p>
+<p>Admin contact (env var): <strong>@ViewBag.AdminEmail</strong></p>
+
+@if (ViewBag.ReceiptUploadMessage != null)
+{
+    bool success = ViewBag.ReceiptUploadSuccess is bool b && b;
+    <div class="alert @(success ? "alert-success" : "alert-warning")" role="alert">
+        @ViewBag.ReceiptUploadMessage
+        @if (success && ViewBag.ReceiptUploadUrl is string url)
+        {
+            <div class="small text-muted">Object path: <code>@url</code></div>
+        }
+    </div>
+}
+
+<p>
+    @if (ViewBag.BookingsDisabled == true)
+    {
+        <span class="badge bg-warning text-dark">Bookings disabled via secret flag</span>
+    }
+    else
+    {
+        <a asp-action="Create" class="btn btn-primary">Create New</a>
+    }
+    <a asp-controller="Screenings" asp-action="Index" class="btn btn-link">Back to Screenings</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Screening</th>
+            <th>Seat</th>
+            <th>Customer</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @item.Screening?.Movie?.Title @(" @ ") @item.Screening?.StartTime.ToString("g")
+            </td>
+            <td>Row @item.SeatRow, Seat @item.SeatNumber</td>
+            <td>@item.CustomerName</td>
+        </tr>
+    }
+    </tbody>
+</table>

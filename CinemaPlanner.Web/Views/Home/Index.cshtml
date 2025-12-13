@@ -1,0 +1,60 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h1>Dashboard</h1>
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Movies</h5>
+                <p class="display-6">@ViewBag.MoviesCount</p>
+                <a asp-controller="Movies" asp-action="Index" class="btn btn-sm btn-primary">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Halls</h5>
+                <p class="display-6">@ViewBag.HallsCount</p>
+                <a asp-controller="Halls" asp-action="Index" class="btn btn-sm btn-primary">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Screenings</h5>
+                <p class="display-6">@ViewBag.ScreeningsCount</p>
+                <a asp-controller="Screenings" asp-action="Index" class="btn btn-sm btn-primary">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Bookings</h5>
+                <p class="display-6">@ViewBag.BookingsCount</p>
+                <a asp-controller="Booking" asp-action="Index" class="btn btn-sm btn-primary">View</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Next Screening</h5>
+        @if (ViewBag.NextScreening != null)
+        {
+            <p>
+                @ViewBag.NextScreening.Movie?.Title @(" @ ") @(((DateTime)ViewBag.NextScreening.StartTime).ToString("g"))
+            </p>
+            <a asp-controller="Screenings" asp-action="Details" asp-route-id="@ViewBag.NextScreening.Id" class="btn btn-sm btn-outline-primary">Details</a>
+        }
+        else
+        {
+            <p class="text-muted">No upcoming screenings scheduled.</p>
+        }
+    </div>
+</div>

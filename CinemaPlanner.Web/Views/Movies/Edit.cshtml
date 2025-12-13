@@ -1,0 +1,41 @@
+@model CinemaPlanner.Web.Models.Movie
+@{
+    ViewData["Title"] = "Edit Movie";
+}
+
+<h1>Edit Movie</h1>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="Id" />
+    <div class="form-group">
+        <label asp-for="Title" class="control-label"></label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="DurationMinutes" class="control-label"></label>
+        <input asp-for="DurationMinutes" class="form-control" />
+        <span asp-validation-for="DurationMinutes" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="ReleaseYear" class="control-label"></label>
+        <input asp-for="ReleaseYear" class="form-control" />
+        <span asp-validation-for="ReleaseYear" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        @if (!string.IsNullOrEmpty(Model.PosterUrl))
+        {
+            <div class="mb-2">
+                <img src="@Url.Action("Poster", "Movies", new { id = Model.Id })" alt="Poster" class="img-thumbnail" style="max-height:200px;" />
+            </div>
+        }
+        <label class="form-label">Poster (upload to replace)</label>
+        <input type="file" name="posterFile" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Save</button>
+    <a asp-action="Index" class="btn btn-secondary mt-3">Back to List</a>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

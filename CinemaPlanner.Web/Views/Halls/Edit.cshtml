@@ -1,0 +1,31 @@
+@model CinemaPlanner.Web.Models.Hall
+@{
+    ViewData["Title"] = "Edit Hall";
+}
+
+<h1>Edit Hall</h1>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div class="form-group">
+        <label asp-for="Name" class="control-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Rows" class="control-label"></label>
+        <input asp-for="Rows" class="form-control" />
+        <span asp-validation-for="Rows" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="SeatsPerRow" class="control-label"></label>
+        <input asp-for="SeatsPerRow" class="form-control" />
+        <span asp-validation-for="SeatsPerRow" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Save</button>
+    <a asp-action="Index" class="btn btn-secondary mt-3">Back to List</a>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
