@@ -55,4 +55,15 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+app.MapGet("/api/min/movies", async (CinemaPlannerDbContext db) =>
+{
+    return Results.Ok(await db.Movies.AsNoTracking().ToListAsync());
+}).WithName("GetMoviesMinimalList");
+
+app.MapGet("/api/min/movies/{id:int}", async (int id, CinemaPlannerDbContext db) =>
+{
+    var movie = await db.Movies.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+    return movie is null ? Results.NotFound() : Results.Ok(movie);
+}).WithName("GetMovieMinimal");
+
 app.Run();
