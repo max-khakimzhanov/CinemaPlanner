@@ -96,44 +96,6 @@ public class MoviesController(IMovieService movieService) : Controller
         return File(result.Value.Content, result.Value.ContentType);
     }
 
-    private string? NormalizePosterUrl(string? url)
-    {
-        if (string.IsNullOrWhiteSpace(url)) return url;
-        if (url.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return url;
-
-        var scheme = "http";
-        return $"{scheme}://{url.TrimStart('/')}";
-    } 
-
-    private string? ExtractObjectName(string posterUrl)
-    {
-        if (string.IsNullOrWhiteSpace(posterUrl)) return null;
-        try
-        {
-            if (Uri.TryCreate(posterUrl, UriKind.Absolute, out var uri))
-            {
-                var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-                if (segments.Length >= 2)
-                {
-                    return string.Join('/', segments.Skip(1));
-                }
-            }
-            else
-            {
-                var parts = posterUrl.Split('/', StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length == 0) return null;
-                if (parts.Length == 1) return parts[0];
-                return string.Join('/', parts.Skip(1));
-            }
-        }
-        catch
-        {
-            return null;
-        }
-
-        return null;
-    }
-
     [HttpGet("/movies/lookup/{value:int}")]
     public async Task<IActionResult> Lookup(int value)
     {

@@ -11,13 +11,15 @@ public class BookingAppService : IBookingAppService
 {
     private readonly CinemaPlannerDbContext _context;
     private readonly BookingService _bookingService;
+    private readonly BookingEventSubscriber _eventSubscriber;
     private readonly bool _bookingsDisabled;
     private readonly string _adminEmail;
 
-    public BookingAppService(CinemaPlannerDbContext context, BookingService bookingService, IConfiguration configuration)
+    public BookingAppService(CinemaPlannerDbContext context, BookingService bookingService, IConfiguration configuration, BookingEventSubscriber eventSubscriber)
     {
         _context = context;
         _bookingService = bookingService;
+        _eventSubscriber = eventSubscriber;
         _bookingsDisabled = bool.TryParse(configuration["CINEMA_FEATURE_FLAGS__DISABLE_BOOKINGS"], out var flag) && flag;
         _adminEmail = configuration["CINEMA_ADMIN_EMAIL"] ?? "(not set)";
     }

@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace CinemaPlanner.Web.Services;
 
-public class MinioStorageService : IPosterStorage
+public class MinioStorageService : IPosterStorage, IReceiptStorage
 {
     private readonly MinioOptions _options;
     private readonly IMinioClient _client;
@@ -61,6 +61,22 @@ public class MinioStorageService : IPosterStorage
         ms.Position = 0;
         var contentType = stat.ContentType ?? "application/octet-stream";
         return (ms, contentType);
+    }
+
+    public async Task<string> UploadReceiptAsync(string objectName, string contentType, Stream content, CancellationToken cancellationToken = default)
+    {
+        await EnsureBucketAsync(cancellationToken);
+
+        var objectKey = SanitizeObjectName(objectName);
+        var putArgs = new PutObjectArgs()
+            .WithBucket(_options.BucketName)
+            .WithObject(objectKey)
+            .WithStreamData(content)
+            .WithObjectSize(content.Length)
+            .WithContentType(contentType);
+
+        await _client.PutObjectAsync(putArgs, cancellationToken);
+        return BuildObjectUrl(objectKey);
     }
 
     private async Task EnsureBucketAsync(CancellationToken cancellationToken)

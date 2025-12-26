@@ -15,6 +15,7 @@ builder.Services.AddDbContext<CinemaPlannerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<SeatLayoutService>();
 builder.Services.AddScoped<BookingService>();
+builder.Services.AddScoped<BookingEventSubscriber>();
 builder.Services.AddScoped<IBookingAppService, BookingAppService>();
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IHallService, HallService>();
@@ -23,7 +24,8 @@ builder.Services.AddScoped<IHomeDashboardService, HomeDashboardService>();
 builder.Services.AddScoped<IOperationsService, OperationsService>();
 builder.Services.Configure<MinioOptions>(builder.Configuration.GetSection("Minio"));
 builder.Services.AddScoped<MinioStorageService>();
-builder.Services.AddScoped<IPosterStorage, MinioStorageService>();
+builder.Services.AddScoped<IPosterStorage>(sp => sp.GetRequiredService<MinioStorageService>());
+builder.Services.AddScoped<IReceiptStorage>(sp => sp.GetRequiredService<MinioStorageService>());
 builder.Services.AddApiVersioning(options =>
 {
     options.DefaultApiVersion = new ApiVersion(1, 0);
