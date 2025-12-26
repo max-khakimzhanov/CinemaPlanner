@@ -11,15 +11,21 @@ public class BookingAppService : IBookingAppService
 {
     private readonly CinemaPlannerDbContext _context;
     private readonly BookingService _bookingService;
-    private readonly BookingEventSubscriber _eventSubscriber;
+    private readonly ILogger<BookingAppService> _logger;
     private readonly bool _bookingsDisabled;
     private readonly string _adminEmail;
 
-    public BookingAppService(CinemaPlannerDbContext context, BookingService bookingService, IConfiguration configuration, BookingEventSubscriber eventSubscriber)
+    public BookingAppService(
+        CinemaPlannerDbContext context,
+        BookingService bookingService,
+        IConfiguration configuration,
+        BookingEventSubscriber eventSubscriber,
+        ILogger<BookingAppService> logger)
     {
         _context = context;
         _bookingService = bookingService;
-        _eventSubscriber = eventSubscriber;
+        _logger = logger;
+        _ = eventSubscriber;
         _bookingsDisabled = bool.TryParse(configuration["CINEMA_FEATURE_FLAGS__DISABLE_BOOKINGS"], out var flag) && flag;
         _adminEmail = configuration["CINEMA_ADMIN_EMAIL"] ?? "(not set)";
     }
@@ -50,7 +56,15 @@ public class BookingAppService : IBookingAppService
         };
 
         _context.Bookings.Add(booking);
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Failed to save booking for screening {ScreeningId}.", dto.ScreeningId);
+            throw;
+        }
         _bookingService.CreateBooking(booking);
     }
 

@@ -72,7 +72,7 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">Seat Occupancy</h5>
-                <p class="display-6">@((ViewBag.Occupancy * 100f).ToString("F1"))%</p>
+                <p class="display-6">@UiBadgeHelper.BuildOccupancyLabel((float)ViewBag.Occupancy, ViewBag.OccupancyLevel as string)</p>
             </div>
         </div>
     </div>

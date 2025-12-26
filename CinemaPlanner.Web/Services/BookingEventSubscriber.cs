@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using CinemaPlanner.Web.Data;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +38,7 @@ public class BookingEventSubscriber
 
     private async Task GenerateReceiptAsync(int bookingId)
     {
+        var start = DateTime.UtcNow;
         try
         {
             var booking = await _context.Bookings
@@ -58,12 +60,22 @@ public class BookingEventSubscriber
         {
             _logger.LogError(ex, "Failed to generate receipt for booking {BookingId}.", bookingId);
         }
+        finally
+        {
+            var elapsedMs = (DateTime.UtcNow - start).TotalMilliseconds;
+            _logger.LogDebug("Receipt generation finished for booking {BookingId} in {ElapsedMs} ms.", bookingId, elapsedMs);
+        }
     }
 
     private static string BuildReceipt(Models.Booking booking)
     {
         var movieTitle = booking.Screening?.Movie?.Title ?? "Unknown";
-        var startTime = booking.Screening?.StartTime.ToString("g") ?? "TBD";
+        var startTime = booking.Screening?.StartTime.ToString("f", CultureInfo.InvariantCulture) ?? "TBD";
+        var seatCode = CreateSeatCode(booking.SeatRow, booking.SeatNumber);
+        var legacySeatCode = unchecked((int)seatCode);
+        var seatCodeHex = seatCode.ToString("X");
+        var statusFlags = (BookingStatusFlags)booking.StatusFlags;
+        var isPaid = (statusFlags & BookingStatusFlags.Paid) == BookingStatusFlags.Paid;
 
         var sb = new StringBuilder();
         sb.AppendLine("CinemaPlanner Booking Receipt");
@@ -71,8 +83,18 @@ public class BookingEventSubscriber
         sb.AppendLine($"Movie: {movieTitle}");
         sb.AppendLine($"Screening: {startTime}");
         sb.AppendLine($"Seat: Row {booking.SeatRow}, Seat {booking.SeatNumber}");
+        sb.AppendLine($"Seat Code: 0x{seatCodeHex} ({seatCode.ToString(CultureInfo.InvariantCulture)})");
+        sb.AppendLine($"Legacy Seat Code: {legacySeatCode}");
+        sb.AppendLine($"Payment status: {(isPaid ? "Paid" : "Pending")}");
         sb.AppendLine($"Customer: {booking.CustomerName}");
         sb.AppendLine($"Created (UTC): {DateTime.UtcNow:O}");
         return sb.ToString();
+    }
+
+    private static long CreateSeatCode(int row, int seat)
+    {
+        long code = row << 32;
+        code |= (uint)seat;
+        return code;
     }
 }

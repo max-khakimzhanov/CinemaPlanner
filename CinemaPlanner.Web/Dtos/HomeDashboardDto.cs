@@ -9,4 +9,5 @@ public record HomeDashboardDto(
     string? NextScreeningTitle,
     DateTime? NextScreeningTime,
     double AverageDuration,
-    float Occupancy);
+    float Occupancy,
+    string OccupancyLevel);

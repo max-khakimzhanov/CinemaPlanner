@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CinemaPlanner.Web.Data;
 
-public static class DataSeeder
+public static partial class DataSeeder
 {
     public static async Task SeedAsync(IServiceProvider services, CancellationToken cancellationToken = default)
     {
@@ -66,5 +66,9 @@ public static class DataSeeder
             );
             await context.SaveChangesAsync(cancellationToken);
         }
+
+        await SeedExtendedDataAsync(scope.ServiceProvider, context, cancellationToken);
     }
+
+    static partial Task SeedExtendedDataAsync(IServiceProvider services, CinemaPlannerDbContext context, CancellationToken cancellationToken);
 }

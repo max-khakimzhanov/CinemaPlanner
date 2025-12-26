@@ -19,6 +19,7 @@ public class HomeController(IHomeDashboardService dashboardService) : Controller
         ViewBag.NextScreening = data;
         ViewBag.AverageDuration = data.AverageDuration;
         ViewBag.Occupancy = data.Occupancy;
+        ViewBag.OccupancyLevel = data.OccupancyLevel;
 
         return View();
     }

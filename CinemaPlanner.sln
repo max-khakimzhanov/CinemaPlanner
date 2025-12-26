@@ -5,6 +5,8 @@ VisualStudioVersion = 18.0.11217.181 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CinemaPlanner.Web", "CinemaPlanner.Web\CinemaPlanner.Web.csproj", "{6448DA6F-4466-476F-8F73-88933670B988}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CinemaPlanner.Web.Tests", "CinemaPlanner.Web.Tests\CinemaPlanner.Web.Tests.csproj", "{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{6448DA6F-4466-476F-8F73-88933670B988}.Release|x64.Build.0 = Release|Any CPU
 		{6448DA6F-4466-476F-8F73-88933670B988}.Release|x86.ActiveCfg = Release|Any CPU
 		{6448DA6F-4466-476F-8F73-88933670B988}.Release|x86.Build.0 = Release|Any CPU
+		{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}.Debug|x64.Build.0 = Debug|Any CPU
+		{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}.Debug|x86.Build.0 = Debug|Any CPU
+		{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}.Release|x64.ActiveCfg = Release|Any CPU
+		{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}.Release|x64.Build.0 = Release|Any CPU
+		{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}.Release|x86.ActiveCfg = Release|Any CPU
+		{0A4483F2-DCEE-4D58-A7C2-155C0E237E34}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

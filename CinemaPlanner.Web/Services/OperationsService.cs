@@ -36,7 +36,9 @@ public class OperationsService(CinemaPlannerDbContext context) : IOperationsServ
         var lastUndo = undoStack.Count > 0 ? undoStack.Pop() : null;
 
         var playlist = new LinkedList<string>();
-        Mapper<Models.Movie, string> map = m => $"Trailer: {m.Title}";
+        Mapper<object, string> objectMapper = value =>
+            value is Models.Movie movie ? $"Trailer: {movie.Title}" : value?.ToString() ?? "Trailer";
+        Mapper<Models.Movie, string> map = objectMapper;
         await foreach (var movie in context.Movies.AsNoTracking().OrderBy(m => m.Title).AsAsyncEnumerable())
         {
             playlist.AddLast(map(movie));
