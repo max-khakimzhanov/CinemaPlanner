@@ -96,6 +96,7 @@ public class BookingController : Controller
             return View(booking);
         }
 
+        booking.StatusFlags = (int)(BookingStatusFlags.Reserved | BookingStatusFlags.Paid);
         _context.Bookings.Add(booking);
         await _context.SaveChangesAsync();
 

@@ -40,11 +40,13 @@ public class OperationsController(CinemaPlannerDbContext context) : Controller
         }
         var lastUndo = undoStack.Count > 0 ? undoStack.Pop() : null;
 
-        var movies = await _context.Movies.AsNoTracking().OrderBy(m => m.Title).ToListAsync();
-        var playlist = movies.Count != 0
-            ? new LinkedList<string>(movies.Select(m => $"Trailer: {m.Title}"))
-            : new LinkedList<string>();
-        if (playlist.First != null)
+        var playlist = new LinkedList<string>();
+        Mapper<Movie, string> map = m => $"Trailer: {m.Title}";
+        await foreach (var movie in _context.Movies.AsNoTracking().OrderBy(m => m.Title).AsAsyncEnumerable())
+        {
+            playlist.AddLast(map(movie));
+        }
+        if (playlist.First is not null)
         {
             playlist.AddAfter(playlist.First, "House rules & safety");
         }

@@ -7,6 +7,7 @@ public static class DataSeeder
 {
     public static async Task SeedAsync(IServiceProvider services, CancellationToken cancellationToken = default)
     {
+        /* Seed data to make the app immediately usable for demos and reviews. */
         using var scope = services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<CinemaPlannerDbContext>();
 
@@ -59,9 +60,9 @@ public static class DataSeeder
         {
             var targetScreening = context.Screenings.First();
             context.Bookings.AddRange(
-                new Booking { ScreeningId = targetScreening.Id, SeatRow = 1, SeatNumber = 1, CustomerName = "Alice" },
-                new Booking { ScreeningId = targetScreening.Id, SeatRow = 1, SeatNumber = 2, CustomerName = "Bob" },
-                new Booking { ScreeningId = targetScreening.Id, SeatRow = 2, SeatNumber = 5, CustomerName = "Charlie" }
+                new Booking { ScreeningId = targetScreening.Id, SeatRow = 1, SeatNumber = 1, CustomerName = "Alice", StatusFlags = (int)(BookingStatusFlags.Reserved | BookingStatusFlags.Paid) },
+                new Booking { ScreeningId = targetScreening.Id, SeatRow = 1, SeatNumber = 2, CustomerName = "Bob", StatusFlags = (int)(BookingStatusFlags.Reserved) },
+                new Booking { ScreeningId = targetScreening.Id, SeatRow = 2, SeatNumber = 5, CustomerName = "Charlie", StatusFlags = (int)(BookingStatusFlags.Reserved | BookingStatusFlags.CheckedIn) }
             );
             await context.SaveChangesAsync(cancellationToken);
         }

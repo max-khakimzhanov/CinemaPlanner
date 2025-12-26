@@ -4,6 +4,7 @@ using CinemaPlanner.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CinemaPlanner.Web.Migrations
 {
     [DbContext(typeof(CinemaPlannerDbContext))]
-    partial class CinemaPlannerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251221193923_AddBookingStatusFlags")]
+    partial class AddBookingStatusFlags
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

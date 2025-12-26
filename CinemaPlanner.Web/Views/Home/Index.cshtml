@@ -9,7 +9,7 @@
             <div class="card-body">
                 <h5 class="card-title">Movies</h5>
                 <p class="display-6">@ViewBag.MoviesCount</p>
-                <a asp-controller="Movies" asp-action="Index" class="btn btn-sm btn-primary">View</a>
+                @Html.ActionLink("View", "Index", "Movies", null, new { @class = "btn btn-sm btn-primary" })
             </div>
         </div>
     </div>
@@ -56,5 +56,24 @@
         {
             <p class="text-muted">No upcoming screenings scheduled.</p>
         }
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Average Movie Duration</h5>
+                <p class="display-6">@ViewBag.AverageDuration.ToString("F1") min</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Seat Occupancy</h5>
+                <p class="display-6">@((ViewBag.Occupancy * 100f).ToString("F1"))%</p>
+            </div>
+        </div>
     </div>
 </div>

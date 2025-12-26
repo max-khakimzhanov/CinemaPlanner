@@ -38,6 +38,7 @@
             <th>Screening</th>
             <th>Seat</th>
             <th>Customer</th>
+            <th>Status</th>
         </tr>
     </thead>
     <tbody>
@@ -49,6 +50,13 @@
             </td>
             <td>Row @item.SeatRow, Seat @item.SeatNumber</td>
             <td>@item.CustomerName</td>
+            <td>
+                @{
+                    var flags = (BookingStatusFlags)item.StatusFlags;
+                    var isReserved = (flags & BookingStatusFlags.Reserved) != 0;
+                }
+                @(isReserved ? "Reserved" : "None")
+            </td>
         </tr>
     }
     </tbody>

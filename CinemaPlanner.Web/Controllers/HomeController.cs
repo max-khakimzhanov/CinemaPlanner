@@ -15,6 +15,20 @@ public class HomeController(CinemaPlannerDbContext context) : Controller
         var screeningsCount = await context.Screenings.CountAsync();
         var bookingsCount = await context.Bookings.CountAsync();
 
+        var totalSeats = 0;
+        await foreach (var hall in context.Halls.AsNoTracking().AsAsyncEnumerable())
+        {
+            totalSeats += hall.Rows * hall.SeatsPerRow;
+        }
+
+        double averageDuration = 0;
+        if (moviesCount > 0)
+        {
+            averageDuration = await context.Movies.AsNoTracking().AverageAsync(m => (double)m.DurationMinutes);
+        }
+
+        float occupancy = totalSeats == 0 ? 0f : bookingsCount / (float)totalSeats;
+
         var nextScreening = await context.Screenings
             .Include(s => s.Movie)
             .OrderBy(s => s.StartTime)
@@ -25,6 +39,8 @@ public class HomeController(CinemaPlannerDbContext context) : Controller
         ViewBag.ScreeningsCount = screeningsCount;
         ViewBag.BookingsCount = bookingsCount;
         ViewBag.NextScreening = nextScreening;
+        ViewBag.AverageDuration = averageDuration;
+        ViewBag.Occupancy = occupancy;
 
         return View();
     }
