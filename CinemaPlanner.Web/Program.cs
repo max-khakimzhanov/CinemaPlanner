@@ -15,6 +15,12 @@ builder.Services.AddDbContext<CinemaPlannerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<SeatLayoutService>();
 builder.Services.AddScoped<BookingService>();
+builder.Services.AddScoped<IBookingAppService, BookingAppService>();
+builder.Services.AddScoped<IMovieService, MovieService>();
+builder.Services.AddScoped<IHallService, HallService>();
+builder.Services.AddScoped<IScreeningService, ScreeningService>();
+builder.Services.AddScoped<IHomeDashboardService, HomeDashboardService>();
+builder.Services.AddScoped<IOperationsService, OperationsService>();
 builder.Services.Configure<MinioOptions>(builder.Configuration.GetSection("Minio"));
 builder.Services.AddScoped<MinioStorageService>();
 builder.Services.AddScoped<IPosterStorage, MinioStorageService>();
@@ -55,14 +61,14 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-app.MapGet("/api/min/movies", async (CinemaPlannerDbContext db) =>
+app.MapGet("/api/min/movies", async (IMovieService movieService) =>
 {
-    return Results.Ok(await db.Movies.AsNoTracking().ToListAsync());
+    return Results.Ok(await movieService.GetAllAsync());
 }).WithName("GetMoviesMinimalList");
 
-app.MapGet("/api/min/movies/{id:int}", async (int id, CinemaPlannerDbContext db) =>
+app.MapGet("/api/min/movies/{id:int}", async (int id, IMovieService movieService) =>
 {
-    var movie = await db.Movies.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+    var movie = await movieService.GetByIdAsync(id);
     return movie is null ? Results.NotFound() : Results.Ok(movie);
 }).WithName("GetMovieMinimal");
 

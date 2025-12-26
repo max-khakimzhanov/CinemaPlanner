@@ -1,4 +1,4 @@
-@model IEnumerable<CinemaPlanner.Web.Models.Screening>
+@model IEnumerable<CinemaPlanner.Web.Dtos.ScreeningListDto>
 @{
     ViewData["Title"] = "Screenings";
 }
@@ -22,8 +22,8 @@
     @foreach (var item in Model)
     {
         <tr>
-            <td>@item.Movie?.Title</td>
-            <td>@item.Hall?.Name</td>
+            <td>@item.MovieTitle</td>
+            <td>@item.HallName</td>
             <td>@item.TimeLabel</td>
             <td>
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |

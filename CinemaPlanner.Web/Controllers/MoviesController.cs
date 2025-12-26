@@ -1,13 +1,11 @@
-using CinemaPlanner.Web.Data;
-using CinemaPlanner.Web.Models;
+using CinemaPlanner.Web.Dtos;
 using CinemaPlanner.Web.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CinemaPlanner.Web.Controllers;
 
 [Route("movies/[action]")]
-public class MoviesController(CinemaPlannerDbContext context, IPosterStorage posterStorage) : Controller
+public class MoviesController(IMovieService movieService) : Controller
 {
 
     [HttpGet("/movies")]
@@ -16,13 +14,9 @@ public class MoviesController(CinemaPlannerDbContext context, IPosterStorage pos
     {
 
         ViewBag.Greeting = "Welcome to the CinemaPlanner catalog";
-        ViewData["Count"] = await context.Movies.CountAsync();
+        var movies = await movieService.GetAllAsync();
+        ViewData["Count"] = movies.Count;
 
-        var movies = await context.Movies.AsNoTracking().ToListAsync();
-        foreach (var movie in movies)
-        {
-            movie.PosterUrl = NormalizePosterUrl(movie.PosterUrl);
-        }
         return View(movies);
     }
 
@@ -31,32 +25,22 @@ public class MoviesController(CinemaPlannerDbContext context, IPosterStorage pos
     {
         if (id == null) return NotFound();
 
-        var movie = await context.Movies.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+        var movie = await movieService.GetByIdAsync(id.Value);
         if (movie == null) return NotFound();
 
-        movie.PosterUrl = NormalizePosterUrl(movie.PosterUrl);
         return View(movie);
     }
 
     [HttpGet]
-    public IActionResult Create() => View();
+    public IActionResult Create() => View(new MovieCreateDto(string.Empty, 0, null));
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Title,DurationMinutes,ReleaseYear")] Movie movie, IFormFile? posterFile)
+    public async Task<IActionResult> Create([Bind("Title,DurationMinutes,ReleaseYear")] MovieCreateDto dto, IFormFile? posterFile)
     {
-        if (!ModelState.IsValid) return View(movie);
+        if (!ModelState.IsValid) return View(dto);
 
-        context.Add(movie);
-        await context.SaveChangesAsync();
-
-        if (posterFile != null && posterFile.Length > 0)
-        {
-            var objectName = $"posters/movie-{movie.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}-{posterFile.FileName}";
-            movie.PosterUrl ??= await posterStorage.UploadPosterAsync(posterFile, objectName);
-            context.Update(movie);
-            await context.SaveChangesAsync();
-        }
+        await movieService.CreateAsync(dto, posterFile);
         return RedirectToAction(nameof(Index));
     }
 
@@ -65,40 +49,21 @@ public class MoviesController(CinemaPlannerDbContext context, IPosterStorage pos
     {
         if (id == null) return NotFound();
 
-        var movie = await context.Movies.FindAsync(id);
+        var movie = await movieService.GetForEditAsync(id.Value);
         if (movie == null) return NotFound();
 
-        movie.PosterUrl = NormalizePosterUrl(movie.PosterUrl);
         return View(movie);
     }
 
     [HttpPost("/movies/edit/{id}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Title,DurationMinutes,ReleaseYear,PosterUrl")] Movie movie, IFormFile? posterFile)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Title,DurationMinutes,ReleaseYear,PosterUrl")] MovieEditDto dto, IFormFile? posterFile)
     {
-        if (id != movie.Id) return NotFound();
-        if (!ModelState.IsValid) return View(movie);
+        if (id != dto.Id) return NotFound();
+        if (!ModelState.IsValid) return View(dto);
 
-        try
-        {
-            if (posterFile != null && posterFile.Length > 0)
-            {
-                var objectName = $"posters/movie-{movie.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}-{posterFile.FileName}";
-                movie.PosterUrl = await posterStorage.UploadPosterAsync(posterFile, objectName);
-            }
-
-            context.Update(movie);
-            await context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!await context.Movies.AnyAsync(e => e.Id == movie.Id))
-            {
-                return NotFound();
-            }
-
-            throw;
-        }
+        var updated = await movieService.UpdateAsync(dto, posterFile);
+        if (!updated) return NotFound();
 
         return RedirectToAction(nameof(Index));
     }
@@ -108,7 +73,7 @@ public class MoviesController(CinemaPlannerDbContext context, IPosterStorage pos
     {
         if (id == null) return NotFound();
 
-        var movie = await context.Movies.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+        var movie = await movieService.GetByIdAsync(id.Value);
         if (movie == null) return NotFound();
 
         return View(movie);
@@ -118,12 +83,7 @@ public class MoviesController(CinemaPlannerDbContext context, IPosterStorage pos
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var movie = await context.Movies.FindAsync(id);
-        if (movie != null)
-        {
-            context.Movies.Remove(movie);
-            await context.SaveChangesAsync();
-        }
+        await movieService.DeleteAsync(id);
 
         return RedirectToAction(nameof(Index));
     }
@@ -131,20 +91,9 @@ public class MoviesController(CinemaPlannerDbContext context, IPosterStorage pos
     [HttpGet("/movies/poster/{id}")]
     public async Task<IActionResult> Poster(int id, CancellationToken cancellationToken)
     {
-        var movie = await context.Movies.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
-        if (movie == null || string.IsNullOrWhiteSpace(movie.PosterUrl))
-        {
-            return NotFound();
-        }
-
-        var objectName = ExtractObjectName(movie.PosterUrl);
-        if (string.IsNullOrWhiteSpace(objectName))
-        {
-            return NotFound();
-        }
-
-        var (content, contentType) = await posterStorage.DownloadAsync(objectName, cancellationToken);
-        return File(content, contentType);
+        var result = await movieService.GetPosterAsync(id, cancellationToken);
+        if (result == null) return NotFound();
+        return File(result.Value.Content, result.Value.ContentType);
     }
 
     private string? NormalizePosterUrl(string? url)
@@ -188,15 +137,16 @@ public class MoviesController(CinemaPlannerDbContext context, IPosterStorage pos
     [HttpGet("/movies/lookup/{value:int}")]
     public async Task<IActionResult> Lookup(int value)
     {
-        var movie = await context.Movies.FindAsync(value);
+        var movie = await movieService.GetByIdAsync(value);
         return movie == null ? NotFound() : View("Details", movie);
     }
 
     [HttpGet("/movies/lookup/{value:alpha}")]
     public async Task<IActionResult> Lookup(string value)
     {
-        var movie = await context.Movies.FirstOrDefaultAsync(m => m.Title == value);
-        return movie == null ? NotFound() : View("Details", movie);
+        var movie = await movieService.GetAllAsync();
+        var match = movie.FirstOrDefault(m => m.Title == value);
+        return match == null ? NotFound() : View("Details", match);
     }
 
     [HttpPost("/movies/lookup")]

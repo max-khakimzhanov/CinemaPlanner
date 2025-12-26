@@ -1,4 +1,4 @@
-@model IEnumerable<CinemaPlanner.Web.Models.Hall>
+@model IEnumerable<CinemaPlanner.Web.Dtos.HallListDto>
 @{
     ViewData["Title"] = "Halls";
 }
@@ -26,7 +26,7 @@
             <td>@item.Name</td>
             <td>@item.Rows</td>
             <td>@item.SeatsPerRow</td>
-            <td>@(item.Rows * item.SeatsPerRow)</td>
+            <td>@item.Capacity</td>
             <td>
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |

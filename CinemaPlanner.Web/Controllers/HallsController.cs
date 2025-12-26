@@ -1,19 +1,18 @@
-using CinemaPlanner.Web.Data;
-using CinemaPlanner.Web.Models;
+using CinemaPlanner.Web.Dtos;
+using CinemaPlanner.Web.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CinemaPlanner.Web.Controllers;
 
 [Route("halls/[action]")]
-public class HallsController(CinemaPlannerDbContext context) : Controller
+public class HallsController(IHallService hallService) : Controller
 {
 
     [HttpGet("/halls")]
     [HttpGet("/halls/index")]
     public async Task<IActionResult> Index()
     {
-        var halls = await context.Halls.AsNoTracking().ToListAsync();
+        var halls = await hallService.GetAllAsync();
         return View(halls);
     }
 
@@ -22,26 +21,20 @@ public class HallsController(CinemaPlannerDbContext context) : Controller
     {
         if (id == null) return NotFound();
 
-        var hall = await context.Halls.AsNoTracking()
-            .Include(h => h.Screenings)
-            .FirstOrDefaultAsync(m => m.Id == id);
-
+        var hall = await hallService.GetByIdAsync(id.Value);
         if (hall == null) return NotFound();
-
         return View(hall);
     }
 
     [HttpGet]
-    public IActionResult Create() => View();
+    public IActionResult Create() => View(new HallCreateDto(string.Empty, 0, 0));
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Name,Rows,SeatsPerRow")] Hall hall)
+    public async Task<IActionResult> Create([Bind("Name,Rows,SeatsPerRow")] HallCreateDto dto)
     {
-        if (!ModelState.IsValid) return View(hall);
-
-        context.Add(hall);
-        await context.SaveChangesAsync();
+        if (!ModelState.IsValid) return View(dto);
+        await hallService.CreateAsync(dto);
         return RedirectToAction(nameof(Index));
     }
 
@@ -49,20 +42,18 @@ public class HallsController(CinemaPlannerDbContext context) : Controller
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null) return NotFound();
-        var hall = await context.Halls.FindAsync(id);
+        var hall = await hallService.GetByIdAsync(id.Value);
         if (hall == null) return NotFound();
         return View(hall);
     }
 
     [HttpPost("/halls/edit/{id}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Rows,SeatsPerRow")] Hall hall)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Rows,SeatsPerRow")] HallEditDto dto)
     {
-        if (id != hall.Id) return NotFound();
-        if (!ModelState.IsValid) return View(hall);
-
-        context.Update(hall);
-        await context.SaveChangesAsync();
+        if (id != dto.Id) return NotFound();
+        if (!ModelState.IsValid) return View(dto);
+        await hallService.UpdateAsync(dto);
         return RedirectToAction(nameof(Index));
     }
 
@@ -71,7 +62,7 @@ public class HallsController(CinemaPlannerDbContext context) : Controller
     {
         if (id == null) return NotFound();
 
-        var hall = await context.Halls.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+        var hall = await hallService.GetByIdAsync(id.Value);
         if (hall == null) return NotFound();
 
         return View(hall);
@@ -81,12 +72,7 @@ public class HallsController(CinemaPlannerDbContext context) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var hall = await context.Halls.FindAsync(id);
-        if (hall != null)
-        {
-            context.Halls.Remove(hall);
-            await context.SaveChangesAsync();
-        }
+        await hallService.DeleteAsync(id);
 
         return RedirectToAction(nameof(Index));
     }

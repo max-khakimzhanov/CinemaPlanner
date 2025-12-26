@@ -1,26 +1,19 @@
-using CinemaPlanner.Web.Data;
-using CinemaPlanner.Web.Models;
+using CinemaPlanner.Web.Dtos;
 using CinemaPlanner.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace CinemaPlanner.Web.Controllers;
 
 [Route("screenings/[action]")]
-public class ScreeningsController(CinemaPlannerDbContext context, SeatLayoutService seatLayoutService) : Controller
+public class ScreeningsController(IScreeningService screeningService, IMovieService movieService, IHallService hallService) : Controller
 {
 
     [HttpGet("/screenings")]
     [HttpGet("/screenings/index")]
     public async Task<IActionResult> Index()
     {
-        var screenings = await context.Screenings
-            .AsNoTracking()
-            .Include(s => s.Movie)
-            .Include(s => s.Hall)
-            .OrderBy(s => s.StartTime)
-            .ToListAsync();
+        var screenings = await screeningService.GetAllAsync();
 
         return View(screenings);
     }
@@ -28,15 +21,7 @@ public class ScreeningsController(CinemaPlannerDbContext context, SeatLayoutServ
     [HttpGet("/screenings/upcoming/{hours:int?}")]
     public async Task<IActionResult> Upcoming(int hours = 24)
     {
-        var from = DateTime.UtcNow;
-        var to = from.AddHours(hours);
-        var screenings = await context.Screenings
-            .AsNoTracking()
-            .Include(s => s.Movie)
-            .Include(s => s.Hall)
-            .Where(s => s.StartTime >= from && s.StartTime <= to)
-            .OrderBy(s => s.StartTime)
-            .ToListAsync();
+        var screenings = await screeningService.GetUpcomingAsync(hours);
         ViewData["HoursWindow"] = hours;
         return View("Upcoming", screenings);
     }
@@ -46,22 +31,8 @@ public class ScreeningsController(CinemaPlannerDbContext context, SeatLayoutServ
     {
         if (id == null) return NotFound();
 
-        var screening = await context.Screenings
-            .AsNoTracking()
-            .Include(s => s.Movie)
-            .Include(s => s.Hall)
-            .FirstOrDefaultAsync(m => m.Id == id);
-
-        if (screening == null) return NotFound();
-
-        var layout = seatLayoutService.BuildLayout(screening.Hall?.Rows ?? 0, screening.Hall?.SeatsPerRow ?? 0);
-        var vm = new ScreeningDetailsViewModel
-        {
-            Screening = screening,
-            SeatMatrix = layout.SeatMatrix,
-            SeatLabels = layout.SeatLabels
-        };
-
+        var vm = await screeningService.GetDetailsAsync(id.Value);
+        if (vm == null) return NotFound();
         return View(vm);
     }
 
@@ -74,16 +45,15 @@ public class ScreeningsController(CinemaPlannerDbContext context, SeatLayoutServ
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("MovieId,HallId,StartTime")] Screening screening)
+    public async Task<IActionResult> Create([Bind("MovieId,HallId,StartTime")] ScreeningCreateDto dto)
     {
         if (!ModelState.IsValid)
         {
             await PopulateDropdowns();
-            return View(screening);
+            return View(dto);
         }
 
-        context.Add(screening);
-        await context.SaveChangesAsync();
+        await screeningService.CreateAsync(dto);
         return RedirectToAction(nameof(Index));
     }
 
@@ -91,7 +61,7 @@ public class ScreeningsController(CinemaPlannerDbContext context, SeatLayoutServ
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null) return NotFound();
-        var screening = await context.Screenings.FindAsync(id);
+        var screening = await screeningService.GetForEditAsync(id.Value);
         if (screening == null) return NotFound();
 
         await PopulateDropdowns(screening.MovieId, screening.HallId);
@@ -100,17 +70,16 @@ public class ScreeningsController(CinemaPlannerDbContext context, SeatLayoutServ
 
     [HttpPost("/screenings/edit/{id}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,MovieId,HallId,StartTime")] Screening screening)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,MovieId,HallId,StartTime")] ScreeningEditDto dto)
     {
-        if (id != screening.Id) return NotFound();
+        if (id != dto.Id) return NotFound();
         if (!ModelState.IsValid)
         {
-            await PopulateDropdowns(screening.MovieId, screening.HallId);
-            return View(screening);
+            await PopulateDropdowns(dto.MovieId, dto.HallId);
+            return View(dto);
         }
 
-        context.Update(screening);
-        await context.SaveChangesAsync();
+        await screeningService.UpdateAsync(dto);
         return RedirectToAction(nameof(Index));
     }
 
@@ -119,14 +88,8 @@ public class ScreeningsController(CinemaPlannerDbContext context, SeatLayoutServ
     {
         if (id == null) return NotFound();
 
-        var screening = await context.Screenings
-            .AsNoTracking()
-            .Include(s => s.Movie)
-            .Include(s => s.Hall)
-            .FirstOrDefaultAsync(m => m.Id == id);
-
+        var screening = await screeningService.GetDetailsAsync(id.Value);
         if (screening == null) return NotFound();
-
         return View(screening);
     }
 
@@ -134,20 +97,15 @@ public class ScreeningsController(CinemaPlannerDbContext context, SeatLayoutServ
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var screening = await context.Screenings.FindAsync(id);
-        if (screening != null)
-        {
-            context.Screenings.Remove(screening);
-            await context.SaveChangesAsync();
-        }
+        await screeningService.DeleteAsync(id);
 
         return RedirectToAction(nameof(Index));
     }
 
     private async Task PopulateDropdowns(int? movieId = null, int? hallId = null)
     {
-        var movies = await context.Movies.AsNoTracking().OrderBy(m => m.Title).ToListAsync();
-        var halls = await context.Halls.AsNoTracking().OrderBy(h => h.Name).ToListAsync();
+        var movies = await movieService.GetOptionsAsync();
+        var halls = await hallService.GetOptionsAsync();
 
         ViewBag.MovieId = new SelectList(movies, "Id", "Title", movieId);
         ViewBag.HallId = new SelectList(halls, "Id", "Name", hallId);

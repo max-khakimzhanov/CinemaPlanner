@@ -1,85 +1,74 @@
 using Asp.Versioning;
-using CinemaPlanner.Web.Data;
-using CinemaPlanner.Web.Models;
+using CinemaPlanner.Web.Dtos;
+using CinemaPlanner.Web.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CinemaPlanner.Web.Controllers.Api.v1;
 
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/movies")]
-public class MoviesV1Controller(CinemaPlannerDbContext context) : ControllerBase
+public class MoviesV1Controller(IMovieService movieService, IScreeningService screeningService) : ControllerBase
 {
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Movie>>> GetAll()
+    public async Task<ActionResult<IEnumerable<MovieApiDto>>> GetAll()
     {
-        var movies = await context.Movies.AsNoTracking().ToListAsync();
-        return Ok(movies);
+        var movies = await movieService.GetAllAsync();
+        return Ok(movies.Select(m => new MovieApiDto(m.Id, m.Title, m.DurationMinutes, m.ReleaseYear)));
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Movie>> GetById(int id)
+    public async Task<ActionResult<MovieApiDto>> GetById(int id)
     {
-        var movie = await context.Movies.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+        var movie = await movieService.GetByIdAsync(id);
         if (movie == null) return NotFound();
-        return Ok(movie);
+        return Ok(new MovieApiDto(movie.Id, movie.Title, movie.DurationMinutes, movie.ReleaseYear));
     }
 
     [HttpGet("filter")]
-    public async Task<ActionResult<IEnumerable<Movie>>> Filter([FromQuery] string? title, [FromQuery] int? minYear, [FromQuery] int? maxYear)
+    public async Task<ActionResult<IEnumerable<MovieApiDto>>> Filter([FromQuery] string? title, [FromQuery] int? minYear, [FromQuery] int? maxYear)
     {
-        var movies = context.Movies.AsNoTracking();
+        var movies = await movieService.GetAllAsync();
+        var query = movies.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(title))
         {
-            movies = movies.Where(m => m.Title.Contains(title));
+            query = query.Where(m => m.Title.Contains(title));
         }
-
         if (minYear.HasValue)
         {
-            movies = movies.Where(m => m.ReleaseYear >= minYear.Value);
+            query = query.Where(m => m.ReleaseYear >= minYear.Value);
         }
-
         if (maxYear.HasValue)
         {
-            movies = movies.Where(m => m.ReleaseYear <= maxYear.Value);
+            query = query.Where(m => m.ReleaseYear <= maxYear.Value);
         }
 
-        return Ok(await movies.ToListAsync());
+        return Ok(query.Select(m => new MovieApiDto(m.Id, m.Title, m.DurationMinutes, m.ReleaseYear)).ToList());
     }
 
     [HttpGet("{id:int}/screenings")]
-    public async Task<ActionResult<IEnumerable<Screening>>> GetScreenings(int id)
+    public async Task<ActionResult<IEnumerable<ScreeningApiDto>>> GetScreenings(int id)
     {
-        var exists = await context.Movies.AnyAsync(m => m.Id == id);
-        if (!exists) return NotFound();
-
-        var screenings = await context.Screenings
-            .AsNoTracking()
-            .Where(s => s.MovieId == id)
-            .Include(s => s.Hall)
-            .OrderBy(s => s.StartTime)
-            .ToListAsync();
-
-        return Ok(screenings);
+        var screenings = await screeningService.GetByMovieIdAsync(id);
+        if (screenings.Count == 0) return NotFound();
+        return Ok(screenings.Select(s => new ScreeningApiDto(s.Id, s.StartTime, s.HallName)));
     }
 
     [HttpGet("by-year/{year=2025}")]
-    public async Task<ActionResult<IEnumerable<Movie>>> ByYear(int year)
+    public async Task<ActionResult<IEnumerable<MovieApiDto>>> ByYear(int year)
     {
-        var movies = context.Movies.AsNoTracking();
-
+        var movies = await movieService.GetAllAsync();
+        var query = movies.AsQueryable();
         if (year > 0)
         {
-            movies = movies.Where(m => m.ReleaseYear == year);
+            query = query.Where(m => m.ReleaseYear == year);
         }
         else
         {
-            movies = movies.OrderByDescending(m => m.ReleaseYear).Take(10);
+            query = query.OrderByDescending(m => m.ReleaseYear).Take(10);
         }
-
-        return Ok(await movies.ToListAsync());
+        return Ok(query.Select(m => new MovieApiDto(m.Id, m.Title, m.DurationMinutes, m.ReleaseYear)).ToList());
     }
 }

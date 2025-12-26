@@ -45,12 +45,12 @@
 <div class="card">
     <div class="card-body">
         <h5 class="card-title">Next Screening</h5>
-        @if (ViewBag.NextScreening != null)
+        @if (ViewBag.NextScreening != null && ViewBag.NextScreening.NextScreeningId != null)
         {
             <p>
-                @ViewBag.NextScreening.Movie?.Title @(" @ ") @(((DateTime)ViewBag.NextScreening.StartTime).ToString("g"))
+                @ViewBag.NextScreening.NextScreeningTitle @(" @ ") @(((DateTime)ViewBag.NextScreening.NextScreeningTime).ToString("g"))
             </p>
-            <a asp-controller="Screenings" asp-action="Details" asp-route-id="@ViewBag.NextScreening.Id" class="btn btn-sm btn-outline-primary">Details</a>
+            <a asp-controller="Screenings" asp-action="Details" asp-route-id="@ViewBag.NextScreening.NextScreeningId" class="btn btn-sm btn-outline-primary">Details</a>
         }
         else
         {
