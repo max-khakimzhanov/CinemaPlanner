@@ -1,10 +1,11 @@
+using CinemaPlanner.Web.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CinemaPlanner.Web.Data;
 
 public static partial class DataSeeder
 {
-    static partial async Task SeedExtendedDataAsync(IServiceProvider services, CinemaPlannerDbContext context, CancellationToken cancellationToken)
+    private static partial async Task SeedExtendedDataAsync(IServiceProvider services, CinemaPlannerDbContext context, CancellationToken cancellationToken)
     {
         var env = services.GetRequiredService<IHostEnvironment>();
         if (!env.IsDevelopment())

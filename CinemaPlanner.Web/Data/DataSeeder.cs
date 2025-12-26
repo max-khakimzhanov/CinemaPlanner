@@ -70,5 +70,5 @@ public static partial class DataSeeder
         await SeedExtendedDataAsync(scope.ServiceProvider, context, cancellationToken);
     }
 
-    static partial Task SeedExtendedDataAsync(IServiceProvider services, CinemaPlannerDbContext context, CancellationToken cancellationToken);
+    private static partial Task SeedExtendedDataAsync(IServiceProvider services, CinemaPlannerDbContext context, CancellationToken cancellationToken);
 }
