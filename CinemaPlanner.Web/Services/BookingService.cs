@@ -1,5 +1,6 @@
 using CinemaPlanner.Web.Models;
 
+using System.ComponentModel;
 using System.Globalization;
 
 namespace CinemaPlanner.Web.Services;
@@ -12,7 +13,14 @@ public class BookingEventArgs(Booking booking) : EventArgs
 public partial class BookingService(ILogger<BookingService> logger)
 {
     private readonly ILogger<BookingService> _logger = logger;
-    public event EventHandler<BookingEventArgs>? BookingCreated;
+    private static readonly object BookingCreatedKey = new();
+    private readonly EventHandlerList _events = new();
+
+    public event EventHandler<BookingEventArgs>? BookingCreated
+    {
+        add => _events.AddHandler(BookingCreatedKey, value);
+        remove => _events.RemoveHandler(BookingCreatedKey, value);
+    }
 
     private readonly List<Booking> _bookings = [];
 
@@ -27,7 +35,8 @@ public partial class BookingService(ILogger<BookingService> logger)
 
     protected virtual void OnBookingCreated(BookingEventArgs e)
     {
-        BookingCreated?.Invoke(this, e);
+        var handler = (EventHandler<BookingEventArgs>?)_events[BookingCreatedKey];
+        handler?.Invoke(this, e);
     }
 
     private static void NormalizeBooking(Booking booking)
