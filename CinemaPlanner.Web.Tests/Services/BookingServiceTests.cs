@@ -122,6 +122,18 @@ public class BookingServiceTests : IClassFixture<BookingFixture>
         Assert.Contains(booking, list);
     }
 
+    [Fact(DisplayName = "Given fixture temp storage, When creating receipt file, Then it is written under temp directory")]
+    public void GivenFixtureTempStorage_WhenWriteReceipt_ThenExists()
+    {
+        var path = _fixture.CreateTempReceiptPath(42);
+        File.WriteAllText(path, "dummy");
+
+        Assert.True(File.Exists(path));
+        var root = Path.GetFullPath(_fixture.TempDirectory);
+        var file = Path.GetFullPath(path);
+        Assert.StartsWith(root, file, StringComparison.OrdinalIgnoreCase);
+    }
+
     public static IEnumerable<object[]> GeneratedNames()
     {
         yield return [TestDataGenerator.CustomerName()];
