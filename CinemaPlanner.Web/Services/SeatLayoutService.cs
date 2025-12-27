@@ -45,7 +45,7 @@ public class SeatLayoutService
         } while (placed == 0 && offset < seatsPerRow);
 
         var seatLabels = new string[rows][];
-        for (int r = 0; r < rows; r++)
+        for (int r = 0; /* iterate over rows to label seats*/ r < rows; r++)
         {
             seatLabels[r] = new string[seatsPerRow];
             for (int c = 0; c < seatsPerRow; c++)
