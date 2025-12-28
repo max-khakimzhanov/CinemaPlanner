@@ -28,8 +28,8 @@ public class SeatLayoutService
             aisleSeatIndex += 5;
         }
 
-        var middleRow = Math.Max(0, rows / 2);
-        var middleSeat = Math.Max(0, seatsPerRow / 2);
+        var middleRow = Math.Max(0, ((rows - 1) / 2));
+        var middleSeat = Math.Max(0, ((seatsPerRow - 1) / 2));
         var placed = 0;
         var offset = 0;
         do
