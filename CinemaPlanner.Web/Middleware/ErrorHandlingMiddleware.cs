@@ -1,3 +1,5 @@
+using CinemaPlanner.Web.Exceptions;
+
 namespace CinemaPlanner.Web.Middleware;
 
 public class ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
@@ -10,6 +12,13 @@ public class ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandling
         try
         {
             await _next(context);
+        }
+        catch (CinemaPlannerException ex)
+        {
+            _logger.LogWarning(ex, "Domain exception for {Path}", context.Request.Path);
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            context.Response.ContentType = "text/plain";
+            await context.Response.WriteAsync(ex.Message);
         }
         catch (Exception ex)
         {

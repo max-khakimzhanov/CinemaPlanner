@@ -8,6 +8,10 @@ public class SeatLayoutService
 {
     public SeatLayoutResult BuildLayout(int rows, int seatsPerRow)
     {
+        if (rows <= 0 || seatsPerRow <= 0)
+        {
+            throw new CinemaPlanner.Web.Exceptions.CinemaPlannerException("Hall layout must have positive rows and seats.");
+        }
         var seatMatrix = new char[rows, seatsPerRow];
         for (int r = 0; r < rows; r++)
         {
