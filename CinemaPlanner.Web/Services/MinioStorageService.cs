@@ -63,7 +63,10 @@ public class MinioStorageService : IPosterStorage, IReceiptStorage
         return (ms, contentType);
     }
 
-    public async Task<string> UploadReceiptAsync(string objectName, string contentType, Stream content, CancellationToken cancellationToken = default)
+    async Task<string> IReceiptStorage.UploadReceiptAsync(string objectName, string contentType, Stream content, CancellationToken cancellationToken)
+        => await UploadReceiptInternalAsync(objectName, contentType, content, cancellationToken);
+
+    private async Task<string> UploadReceiptInternalAsync(string objectName, string contentType, Stream content, CancellationToken cancellationToken = default)
     {
         await EnsureBucketAsync(cancellationToken);
 

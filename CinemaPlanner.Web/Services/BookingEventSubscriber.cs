@@ -10,16 +10,19 @@ public class BookingEventSubscriber
     private readonly ILogger<BookingEventSubscriber> _logger;
     private readonly CinemaPlannerDbContext _context;
     private readonly IReceiptStorage _receiptStorage;
+    private readonly IReadOnlyList<IBookingNotifier> _notifiers;
 
     public BookingEventSubscriber(
         BookingService bookingService,
         ILogger<BookingEventSubscriber> logger,
         CinemaPlannerDbContext context,
-        IReceiptStorage receiptStorage)
+        IReceiptStorage receiptStorage,
+        IEnumerable<IBookingNotifier> notifiers)
     {
         _logger = logger;
         _context = context;
         _receiptStorage = receiptStorage;
+        _notifiers = notifiers.ToList();
 
         bookingService.BookingCreated += HandleBookingCreated;
     }
@@ -34,6 +37,7 @@ public class BookingEventSubscriber
             e.Booking.SeatNumber);
 
         _ = GenerateReceiptAsync(e.Booking.Id);
+        _ = NotifyAsync(e.Booking);
     }
 
     private async Task GenerateReceiptAsync(int bookingId)
@@ -64,6 +68,21 @@ public class BookingEventSubscriber
         {
             var elapsedMs = (DateTime.UtcNow - start).TotalMilliseconds;
             _logger.LogDebug("Receipt generation finished for booking {BookingId} in {ElapsedMs} ms.", bookingId, elapsedMs);
+        }
+    }
+
+    private async Task NotifyAsync(Models.Booking booking)
+    {
+        try
+        {
+            foreach (var notifier in _notifiers)
+            {
+                await notifier.NotifyAsync(booking);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to notify about booking {BookingId}.", booking.Id);
         }
     }
 

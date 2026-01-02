@@ -17,6 +17,7 @@ builder.Services.AddScoped<SeatLayoutService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<BookingEventSubscriber>();
 builder.Services.AddScoped<IBookingAppService, BookingAppService>();
+builder.Services.AddScoped<IBookingNotifier, LoggingBookingNotifier>();
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IHallService, HallService>();
 builder.Services.AddScoped<IScreeningService, ScreeningService>();
