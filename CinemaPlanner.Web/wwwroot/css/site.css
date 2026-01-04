@@ -21,6 +21,14 @@ body {
   margin-bottom: 60px;
 }
 
+.operations-panel {
+  height: 220px;
+  width: 100%;
+  background-color: #f2f6fb;
+  border: 1px solid #c7d3e6;
+  font-size: 0.95rem;
+}
+
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);
   text-align: end;
